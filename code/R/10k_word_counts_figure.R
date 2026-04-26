@@ -1,6 +1,6 @@
 
 # Setup
-packages <- c("tidyverse", "ggplot2")
+packages <- c("tidyverse", "ggplot2", "scales")
 installed <- rownames(installed.packages())
 
 for (p in packages) {
@@ -198,7 +198,10 @@ fig_box <- ggplot(df_box, aes(
     alpha = 0.7,
     outlier.size = 0.5
   ) +
-  scale_y_log10() +
+  scale_y_log10(
+    breaks = scales::trans_breaks("log10", function(x) 10^x),
+    labels = scales::trans_format("log10", scales::math_format(10^.x))
+  ) +
   labs(
     title = "Distribution of 10-K Length by Year",
     x = "Year",
@@ -216,6 +219,6 @@ ggsave(
   filename = "output/word_counts_boxplot_1996_2025.png",
   plot = fig_box,
   width = 10,
-  height = 5,
+  height = 8,
   dpi = 300
 )
