@@ -1,0 +1,178 @@
+---
+title: |
+    Trends in 10-K Report Length
+subtitle: |
+    Replication and Extension of Dyer, Lang, and Stice-Lawrence (2017)
+author:
+  - name: '`Chengjun Han \\ \textit{chengjun.han@student.hu-berlin.de} \\\\`{=latex}'
+date: last-modified
+date-format: long
+execute:
+  echo: false
+  message: false
+  warning: false
+format:
+  pdf:
+    toc: false
+    number-sections: true
+    fig-cap-location: bottom
+    tbl-cap-location: top
+fontsize: 11pt
+ident: yes
+header-includes:
+  - \usepackage{setspace}\doublespacing
+  - \setlength{\parindent}{0em}
+  - \setlength{\parskip}{1em}
+  - \usepackage[hang,flushmargin]{footmisc}
+  - \usepackage{caption}
+  - \captionsetup[table]{skip=12pt,font=bf}
+  - \captionsetup[figure]{skip=12pt,font=bf}
+  - \usepackage{array}
+  - \usepackage{threeparttable}
+  - \usepackage{adjustbox}
+  - \usepackage{graphicx}
+  - \usepackage{csquotes}
+  - \usepackage[margin=1in]{geometry}
+  - \usepackage{booktabs}
+  - \usepackage{float}
+  - \usepackage{etoolbox}
+  - \makeatletter
+  - \patchcmd{\maketitle}{\end{center}}{\end{center}\thispagestyle{empty}\clearpage}{}{}
+  - \makeatother
+---
+
+\vspace{6em}
+
+\begin{center}
+\begin{minipage}{0.9\textwidth}
+
+\noindent\textbf{Abstract}
+\vspace{1em}
+
+This paper replicates and extends the analysis of 10-K report length in Dyer, Lang, and Stice-Lawrence (2017). Using the provided dataset, we construct annual summary statistics of word counts and reproduce the main findings for the period 1996–2013. Consistent with the original study, we document a substantial increase in 10-K length over time. We then extend the analysis to 2025 and show that this upward trend persists in recent years. In addition, we examine the distribution of word counts using boxplots on a logarithmic scale, which reveal dispersion and outliers not visible in aggregate statistics. While minor differences arise in early years and in certain quantiles, the overall pattern remains robust, providing further evidence of the long-run expansion in financial disclosure.
+
+\end{minipage}
+\end{center}
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| include: false
+
+setwd("/workspaces/rct-project-template")
+
+library(tidyverse)
+
+source("code/R/10k_word_counts_figure.R")
+```
+
+\pagebreak
+
+# Introduction
+
+This paper replicates and extends the evidence on the evolution of 10-K report length documented in Dyer, Lang, and Stice-Lawrence (2017), using the provided dataset and extending the analysis to more recent years.
+
+# Data and Sample Description
+
+The data used in this study are provided as part of the assignment and consist of word counts of 10-K filings. The dataset includes filing-level information such as filing date, report date, and word count.
+
+We define the year of each observation based on the report date of the filing. To ensure data quality, we exclude observations with missing or non-positive word counts, as well as filings with unsuccessful downloads.
+
+The resulting sample covers the period from 1996 to 2025. Observations from 2026 are excluded from the analysis, as the number of filings in that year is substantially lower than in recent years and the year is incomplete at the time of analysis.
+
+Table 1 reports summary statistics of the sample by year, including the number of observations, mean, median, and interquartile range of 10-K word counts.
+
+```{r}
+#| echo: false
+#| results: asis
+
+library(dplyr)
+library(knitr)
+
+table_year <- df_clean %>%
+  filter(year >= 1996, year <= 2025) %>%
+  group_by(year) %>%
+  summarise(
+    N = n(),
+    Mean = mean(word_count, na.rm = TRUE),
+    Median = median(word_count, na.rm = TRUE),
+    Q1 = quantile(word_count, 0.25, na.rm = TRUE),
+    Q3 = quantile(word_count, 0.75, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+n_half <- ceiling(nrow(table_year) / 2)
+
+left <- table_year[1:n_half, ]
+right <- table_year[(n_half + 1):nrow(table_year), ]
+
+table_split <- bind_cols(left, right)
+
+knitr::kable(
+  table_split,
+  format = "latex",
+  booktabs = TRUE,
+  digits = 0,
+  caption = "Summary Statistics of 10-K Word Counts by Year",
+  col.names = c(
+    "Year", "N", "Mean", "Median", "Q1", "Q3",
+    "Year", "N", "Mean", "Median", "Q1", "Q3"
+  ),
+  table.envir = "table",
+  position = "H"
+)
+```
+
+# Research Design and Comparison to the Original Study
+
+We follow the approach in Dyer, Lang, and Stice-Lawrence (2017) to construct annual summary statistics of 10-K report length. In particular, we define the year of each observation based on the report date and compute the mean, median, and interquartile range of word counts for each year.
+
+Our design closely mirrors the original study in its focus on descriptive statistics of filing length over time. However, due to data availability and the structure of the provided dataset, some implementation details may differ. For example, we rely on the cleaned dataset provided in the assignment rather than reconstructing the sample from raw SEC filings.
+
+In addition, while the original study focuses on the period up to 2013, we extend the analysis to 2025 to examine whether the documented trends persist in more recent years. We also exclude observations from 2026, as the year is incomplete and the number of filings is substantially lower, which would bias the results downward.
+
+Overall, our empirical design is consistent with the original study, while incorporating minor adjustments driven by data availability and extending the sample period.
+
+# Figures and Results
+
+Figure 1 reproduces the main descriptive pattern in Dyer, Lang, and Stice-Lawrence (2017) for the period 1996–2013. The figure reports the annual mean, median, first quartile, and third quartile of 10-K word counts. Consistent with the original paper, 10-K filings become longer over time.
+
+```{r}
+#| echo: false
+#| fig-cap: "Replication of 10-K Report Length, 1996--2013"
+
+knitr::include_graphics("/workspaces/rct-project-template/output/word_counts_figure_1996_2013.png")
+```
+
+Figure 2 extends the same analysis to 2025. This extension allows us to examine whether the increase in 10-K length continues beyond the original sample period. The figure suggests that the upward trend persists in more recent years.
+
+```{r}
+#| echo: false
+#| fig-cap: "Extended 10-K Report Length, 1996--2025"
+
+knitr::include_graphics("/workspaces/rct-project-template/output/word_counts_figure_1996_2025.png")
+```
+
+In addition to the line charts, Figure 3 presents annual boxplots of 10-K word counts. The yearly summary table shows that the data naturally contain distributional information, including quartiles, medians, and dispersion. Therefore, a boxplot is a useful complementary visualisation. While the line charts summarise annual trends, the boxplots show the distribution of filings within each year.
+
+The vertical axis in Figure 3 is shown on a logarithmic scale because word counts are highly right-skewed. This makes the distribution easier to interpret and allows extreme observations and outliers to remain visible. These outliers are difficult to detect from the line charts alone.
+
+```{r}
+#| echo: false
+#| fig-cap: "Distribution of 10-K Word Counts by Year, 1996--2025"
+
+knitr::include_graphics("/workspaces/rct-project-template/output/word_counts_boxplot_1996_2025.png")
+```
+
+# Conclusion
+
+Overall, the replicated results are broadly consistent with the findings in Dyer, Lang, and Stice-Lawrence (2017). Both our analysis and the original study document a clear upward trend in 10-K report length over time, with average word counts roughly doubling over the past three decades.
+
+However, several differences emerge in the 1996–2013 period. First, the data from 1996 to 1999 in our sample differ substantially from those reported in the original paper. In particular, the number of observations in these early years is significantly lower, which is also evident from the summary statistics table. This discrepancy likely reflects incomplete archival coverage in the SEC database during the early years of digital filing, when electronic record-keeping was still developing and many older filings were not fully digitised.
+
+Second, our results show a noticeable decline in the first quartile (P25/Q1) between 2002 and 2008, a pattern that is not present in the original figure. The boxplot provides additional insight into this difference: during 2004–2007, the distance between Q1 and the median becomes larger, while the number of lower-end outliers decreases. This suggests that the decline in Q1 is not mainly driven by more extreme low observations, but rather by a widening of the lower half of the distribution.
+
+Third, the original study reports two declines in the third quartile (P75/Q3), around 2004–2006 and 2008–2009. These patterns are not replicated in our results, where Q3 continues to increase more smoothly over time. This difference may again reflect variations in sample construction or data availability.
+
+Extending the analysis beyond the original sample period, the trends from 2013 to 2025 largely continue the trajectory observed between 2008 and 2013. In particular, both the mean and upper quantiles continue to increase, suggesting that the expansion in disclosure documented in the original study has persisted in recent years. Taken together, these results suggest that while some short-term fluctuations differ across samples, the long-run increase in 10-K report length is a robust empirical pattern.
