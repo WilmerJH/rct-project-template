@@ -1,42 +1,39 @@
 RSCRIPT := Rscript --vanilla
 QUARTO := quarto
 
-PULLED := data/pulled/mtcars_raw.rds
-GENERATED := data/generated/mtcars_prepared.rds
-RESULTS := output/rct-project-template-results.rds
-OLD_RESULTS := output/rct-github-intro-results.rds
-PAPER_BASENAME := rct-project-template-paper.pdf
-OLD_PAPER := output/rct-github-intro-paper.pdf
-PAPER := output/$(PAPER_BASENAME)
-SOURCE := doc/paper.qmd
+DATA := data/external/10k_word_counts.csv
+ANALYSIS := code/R/10k_word_counts_figure.R
+SOURCE := doc/10k_word_counts_figure.qmd
 
-.PHONY: all clean
+FIG1 := output/word_counts_figure_1996_2013.png
+FIG2 := output/word_counts_figure_1996_2025.png
+FIG3 := output/word_counts_boxplot_1996_2025.png
+
+PAPER_BASENAME := 10k_word_counts_figure.pdf
+PAPER := output/$(PAPER_BASENAME)
+
+.PHONY: all clean figures paper
 
 all: $(PAPER)
 
-$(PULLED): code/R/pull_data.R
-	mkdir -p data/pulled
-	$(RSCRIPT) $<
+figures: $(FIG1) $(FIG2) $(FIG3)
 
-$(GENERATED): code/R/prep_data.R $(PULLED)
-	mkdir -p data/generated
-	$(RSCRIPT) $<
-
-$(RESULTS): code/R/run_analysis.R $(GENERATED)
+$(FIG1) $(FIG2) $(FIG3): $(ANALYSIS) $(DATA)
 	mkdir -p output
-	$(RSCRIPT) $<
+	$(RSCRIPT) $(ANALYSIS)
 
-$(PAPER): $(SOURCE) $(RESULTS)
+$(PAPER): $(SOURCE) $(FIG1) $(FIG2) $(FIG3)
+	mkdir -p output
 	rm -rf .quarto doc/.quarto
-	cd doc && $(QUARTO) render paper.qmd --to pdf --output $(PAPER_BASENAME)
+	cd doc && $(QUARTO) render 10k_word_counts_figure.qmd --to pdf --output $(PAPER_BASENAME)
+	mv doc/$(PAPER_BASENAME) output/$(PAPER_BASENAME)
 	rm -f paper.tex paper.log paper.aux paper.out paper.knit.md
-	rm -f $(PAPER_BASENAME)
 	rm -f texput.log doc/texput.log
-	rm -f doc/paper.tex doc/paper.log doc/paper.aux doc/paper.out doc/paper.knit.md doc/paper.fff doc/paper.ttt
+	rm -f doc/*.tex doc/*.log doc/*.aux doc/*.out doc/*.knit.md doc/*.fff doc/*.ttt
 
 clean:
 	rm -rf .quarto doc/.quarto
-	rm -f $(PULLED) $(GENERATED) $(RESULTS) $(PAPER) $(OLD_RESULTS) $(OLD_PAPER)
+	rm -f $(FIG1) $(FIG2) $(FIG3) $(PAPER)
 	rm -f paper.tex paper.log paper.aux paper.out paper.knit.md
 	rm -f texput.log doc/texput.log
-	rm -f doc/paper.tex doc/paper.log doc/paper.aux doc/paper.out doc/paper.knit.md doc/paper.fff doc/paper.ttt
+	rm -f doc/*.tex doc/*.log doc/*.aux doc/*.out doc/*.knit.md doc/*.fff doc/*.ttt
