@@ -1,14 +1,8 @@
 
 # Setup
-packages <- c("tidyverse", "ggplot2", "scales")
-installed <- rownames(installed.packages())
-
-for (p in packages) {
-  if (!(p %in% installed)) {
-    install.packages(p)
-  }
-  library(p, character.only = TRUE)
-}
+library(tidyverse)
+library(scales)
+library(ggplot2)
 
 
 # Load data

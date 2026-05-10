@@ -17,7 +17,13 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
 RUN install2.r --error --skipinstalled \
+      tidyverse \
       ggplot2 \
+      dplyr \
+      tidyr \
+      readr \
+      lubridate \
+      scales \
       knitr \
       rmarkdown \
       tinytex \
@@ -25,6 +31,18 @@ RUN install2.r --error --skipinstalled \
 
 RUN Rscript -e "tinytex::install_tinytex(dir = '/opt/TinyTeX', force = TRUE)" \
  && ln -sf /opt/TinyTeX/bin/*/* /usr/local/bin/
+
+RUN tlmgr install \
+      koma-script \
+      setspace \
+      booktabs \
+      caption \
+      csquotes \
+      footmisc \
+      threeparttable \
+      adjustbox \
+      float \
+      placeins
 
 RUN set -eux; \
   QUARTO_VERSION=1.6.40; \
